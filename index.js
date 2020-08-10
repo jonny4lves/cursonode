@@ -12,7 +12,7 @@ const main = async () => {
 
     let client = await pool.connect(); 
 
-    await client.query("insert into tbclientes (tipo,nome) VALUES ('F','teste')")
+    await client.query("insert into tbclientes (tipo,nome) VALUES ('F','teste')");
 
     client.end();
 
@@ -20,3 +20,4 @@ const main = async () => {
 
 }
 
+main();
