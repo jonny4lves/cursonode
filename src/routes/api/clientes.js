@@ -46,7 +46,7 @@ router.get('/:id', async (req, res) => {
         })
     } catch (err) {
         res.status(500).send();
-
+ 
     } finally {
         if (client)
             client.end();
@@ -55,6 +55,13 @@ router.get('/:id', async (req, res) => {
 
 router.post('/', async (req, res) => {
     const cliente = req.body;
+
+    let client;
+
+
+    //validações
+    if (cliente.tipo !== 'F' && cliente.tipo !== 'J')
+        res.status(400).send({"erro":"Tipo de cliente inválido"})
     try {
         client = await pool.connect();
         
@@ -70,7 +77,7 @@ router.post('/', async (req, res) => {
                                 if (respostaGet.rowCount == 0)
                                     res.status(404).send()
                                 else
-                                    res.status(200).json(respostaGet.rows[0])
+                                    res.status(201).json(respostaGet.rows[0])
                             })  
                     })
         })
@@ -84,5 +91,55 @@ router.post('/', async (req, res) => {
     }
 })
 
+router.put('/:id', async (req, res) => {
+    const cliente = req.body;
+    const idCliente = req.params.id;
+
+    let client;
+
+    //validações
+    if (cliente.tipo !== 'F' && cliente.tipo !== 'J')
+        res.status(400).send({ "erro": "Tipo de cliente inválido" })
+
+    try {
+        client = await pool.connect();
+
+        await client.query('update tbclientes set tipo = $1, nome = $2 where id_cliente = ' + idCliente,
+            [cliente.tipo, cliente.nome])
+            .then(async () => {
+                await client.query('select * from tbclientes where id_cliente = ' + idCliente)
+                    .then(respostaGet => {
+                        if (respostaGet.rowCount == 0)
+                            res.status(404).send()
+                        else
+                            res.status(200).json(respostaGet.rows[0])
+                    })
+            })
+
+    } catch (err) {
+        res.status(500).send()
+    } finally {
+        if (client)
+            client.end();
+    }
+})
+
+router.delete('/:id', async (req, res) => {
+    let client;
+
+    try {
+        client = await pool.connect();
+
+        await client.query("delete from tbclientes where id_cliente = " + req.params.id)
+            .then(() => {
+                res.status(200).send()
+        })
+    } catch (err) {
+        res.status(500).send()
+    } finally {
+        if (client)
+            client.end();
+    }
+})
 
 module.exports = router;
